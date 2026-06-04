@@ -1,0 +1,36 @@
+pipeline {
+    agent any 
+    environment {
+        REPO_URL = "https://github.com/AnugetHub1627/hellow-wrld.git"
+        IMAGE_NAME = "hello-world-app"
+        TAG = "v1"
+        CONTAINER_NAME = "hello-container"
+        PORT = "8089"
+    }
+    stages {
+        stage("clone repo") {
+            steps {
+                git branch: 'master', url: "$REPO_URL"
+            }
+        }
+        stage("docker image build") {
+            steps {
+                sh 'docker build -t $IMAGE_NAME:$TAG .'
+            }
+        }
+        stage("create container") {
+            steps {
+                // Fixed the variable at the end of the docker run command from $CONTAINER_NAME to $TAG
+                sh '''
+                docker rm -f $CONTAINER_NAME || true
+                docker run -d -p $PORT:8080 --name $CONTAINER_NAME $IMAGE_NAME:$TAG
+                '''
+            }
+        }
+        stage("verify") {
+            steps {
+                sh "docker ps"
+            }
+        }
+    }    
+}
